@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #f4f4f4;
+      }
+
+      h2 {
+        color: #333;
+        margin-top: 20px;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 80%;
+        margin-top: 20px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #f2f2f2;
+        color: #333;
+      }
+
+      #addUserForm,
+      #editUserForm {
+        display: none;
+        position: absolute;
+        margin-top: 20px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        padding: 20px;
+        border-radius: 8px;
+        width: 80%;
+        max-width: 400px;
+      }
+
+      #addUserForm h3,
+      #editUserForm h3 {
+        margin-top: 0;
+        color: #333;
+      }
+
+      label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+        color: #555;
+      }
+
+      input {
+        width: 100%;
+        padding: 10px;
+        margin-top: 6px;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      button {
+        width: 100%;
+        background-color: #4caf50;
+        color: #fff;
+        padding: 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 15px;
+        font-size: 16px;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+
+      button.cancel {
+        background-color: #ccc;
+      }
+
+      button.cancel:hover {
+        background-color: #999;
+      }
+      .searchSort {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px; /* Adjust margin as needed */
+        gap: 50rem;
+      }
+
+      input#orderSelect {
+        margin-top: 10px;
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        width: 100%;
+        box-sizing: border-box;
+      }
+    </style>
+    <title>New Admission List</title>
+  </head>
+  <body>
+    <h2>New Admission List</h2>
+
+    <div class="searchSort">
+      <div style=" display: flex; gap: 2rem;">
+        <h3>Search:</h3>
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search by First Name"
+          oninput="searchUsers()"
+        />
+      </div>
+
+      <div style=" display: flex; gap: 2rem;">
+        <h3>Sort:</h3>
+        <select id="orderSelect" onchange="sortUsers()">
+          <option value="asc" selected>Ascending Order</option>
+          <option value="desc">Descending Order</option>
+        </select>
+      </div>
+    </div>
+
+    <button onclick="toggleAddUserForm()">Add User</button>
+
+    <div id="addUserForm">
+      <h3>Add User</h3>
+      <form id="userForm">
+        <label for="userFirstName">First Name:</label>
+        <input
+          type="text"
+          id="userFirstName"
+          name="first_name"
+          required
+        /><br />
+
+        <label for="userMiddleName">Middle Name:</label>
+        <input type="text" id="userMiddleName" name="middle_name" /><br />
+
+        <label for="userLastName">Last Name:</label>
+        <input type="text" id="userLastName" name="last_name" required /><br />
+
+        <label for="userPhoneNumber">Phone Number:</label>
+        <input
+          type="text"
+          id="userPhoneNumber"
+          name="phone_number"
+          required
+        /><br />
+
+        <label for="userEmail">Email:</label>
+        <input type="email" id="userEmail" name="email" required /><br />
+
+        <button type="button" onclick="addUser()">Submit</button>
+        <button type="button" class="cancel" onclick="toggleAddUserForm()">
+          Cancel
+        </button>
+      </form>
+    </div>
+
+    <div id="editUserForm">
+      <h3>Edit User</h3>
+      <form id="editForm">
+        <input type="hidden" id="editUserId" name="registration_main_id" />
+        <label for="editFirstName">First Name:</label>
+        <input
+          type="text"
+          id="editFirstName"
+          name="first_name"
+          required
+        /><br />
+
+        <label for="editMiddleName">Middle Name:</label>
+        <input type="text" id="editMiddleName" name="middle_name" /><br />
+
+        <label for="editLastName">Last Name:</label>
+        <input type="text" id="editLastName" name="last_name" required /><br />
+
+        <label for="editPhoneNumber">Phone Number:</label>
+        <input
+          type="text"
+          id="editPhoneNumber"
+          name="phone_number"
+          required
+        /><br />
+
+        <label for="editEmail">Email:</label>
+        <input type="email" id="editEmail" name="email" required /><br />
+
+        <button type="button" onclick="updateUser()">Update</button>
+        <button type="button" class="cancel" onclick="toggleEditUserForm()">
+          Cancel
+        </button>
+      </form>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Registration ID</th>
+          <th>User Code</th>
+          <th>First Name</th>
+          <th>Middle Name</th>
+          <th>Last Name</th>
+          <th>Phone Number</th>
+          <th>Email</th>
+          <th>Created Time</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="dataBody"></tbody>
+    </table>
+
+    <script>
+      let originalData = [];
+      let sortOrders = {};
+
+      function searchUsers() {
+        const searchInput = document
+          .getElementById("searchInput")
+          .value.toLowerCase();
+        const filteredData = originalData.filter((entry) =>
+          entry.first_name.toLowerCase().includes(searchInput)
+        );
+        populateTable(filteredData);
+      }
+
+      function sortUsers() {
+        const orderSelect = document.getElementById("orderSelect");
+        const sortOrder = orderSelect.options[orderSelect.selectedIndex].value;
+        sortUsersByColumn("first_name", sortOrder);
+      }
+
+      function sortUsersByColumn(column, order) {
+        const sortedData = originalData.slice(0);
+
+        sortedData.sort((a, b) => {
+          const compareValue = a[column]
+            .toLowerCase()
+            .localeCompare(b[column].toLowerCase());
+          return order === "asc" ? compareValue : -compareValue;
+        });
+
+        populateTable(sortedData);
+        sortOrders[column] = order;
+      }
+
+      function updateOrderSelect() {
+        const orderSelect = document.getElementById("orderSelect");
+        const sortOrder = sortOrders["first_name"];
+        orderSelect.value = sortOrder;
+      }
+      function toggleAddUserForm() {
+        const addUserForm = document.getElementById("addUserForm");
+        addUserForm.style.display =
+          addUserForm.style.display === "none" ? "block" : "none";
+      }
+
+      function toggleEditUserForm() {
+        const editUserForm = document.getElementById("editUserForm");
+        editUserForm.style.display =
+          editUserForm.style.display === "none" ? "block" : "none";
+      }
+
+      function addUser() {
+        const userForm = document.getElementById("userForm");
+        const formData = new FormData(userForm);
+
+        fetch(
+          "https://glexas.com/hostel_data/API/raj/new_admission_insert.php",
+          {
+            method: "POST",
+            body: formData,
+          }
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status) {
+              fetchDataAndPopulateTable();
+              userForm.reset();
+              toggleAddUserForm();
+            } else {
+              console.error("Error adding user:", data.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error adding user:", error);
+          });
+      }
+
+      function updateUser() {
+        const editForm = document.getElementById("editForm");
+        const formData = new FormData(editForm);
+
+        fetch(
+          "https://glexas.com/hostel_data/API/raj/new_admission_update.php",
+          {
+            method: "POST",
+            body: formData,
+          }
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status) {
+              fetchDataAndPopulateTable();
+              editForm.reset();
+              toggleEditUserForm();
+            } else {
+              console.error("Error updating user:", data.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error updating user:", error);
+          });
+      }
+
+      function deleteUser(registrationMainId) {
+        fetch(
+          "https://glexas.com/hostel_data/API/raj/new_admission_delete.php",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: `registration_main_id=${registrationMainId}`,
+          }
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status) {
+              fetchDataAndPopulateTable();
+            } else {
+              console.error("Error deleting user:", data.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error deleting user:", error);
+          });
+      }
+
+      // function fetchDataAndPopulateTable() {
+      //     fetch('https://glexas.com/hostel_data/API/raj/new_admission_list.php')
+      //     .then(response => response.json())
+      //     .then(data => {
+      //         populateTable(data.response);
+      //     })
+      //     .catch(error => {
+      //         console.error('Error fetching data:', error);
+      //     });
+      // }
+
+      function fetchDataAndPopulateTable() {
+        fetch("https://glexas.com/hostel_data/API/raj/new_admission_list.php")
+          .then((response) => response.json())
+          .then((data) => {
+            originalData = data.response;
+            updateOrderSelect();
+            populateTable(originalData);
+          })
+          .catch((error) => {
+            console.error("Error fetching data:", error);
+          });
+      }
+
+      function populateTable(data) {
+        const dataBody = document.getElementById("dataBody");
+        dataBody.innerHTML = "";
+
+        data.forEach((entry) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+                    <td>${entry.registration_main_id}</td>
+                    <td>${entry.user_code}</td>
+                    <td>${entry.first_name}</td>
+                    <td>${entry.middle_name}</td>
+                    <td>${entry.last_name}</td>
+                    <td>${entry.phone_country_code} ${entry.phone_number}</td>
+                    <td>${entry.email}</td>
+                    <td>${entry.created_time}</td>
+                    <td>
+                        <button onclick="editUser('${entry.registration_main_id}')">Edit</button>
+                        <button onclick="deleteUser('${entry.registration_main_id}')">Delete</button>
+                    </td>
+                `;
+          dataBody.appendChild(row);
+        });
+      }
+
+      function editUser(registrationMainId) {
+        const dataBody = document.getElementById("dataBody");
+        const rows = dataBody.getElementsByTagName("tr");
+
+        for (let i = 0; i < rows.length; i++) {
+          const cells = rows[i].getElementsByTagName("td");
+          const userId = cells[0].textContent;
+
+          if (userId === registrationMainId) {
+            document.getElementById("editUserId").value = userId;
+            document.getElementById("editFirstName").value =
+              cells[2].textContent;
+            document.getElementById("editMiddleName").value =
+              cells[3].textContent;
+            document.getElementById("editLastName").value =
+              cells[4].textContent;
+            document.getElementById("editPhoneNumber").value =
+              cells[5].textContent.split(" ")[1];
+            document.getElementById("editEmail").value = cells[6].textContent;
+            toggleEditUserForm();
+            break;
+          }
+        }
+      }
+
+      fetchDataAndPopulateTable();
+    </script>
+  </body>
+</html>
