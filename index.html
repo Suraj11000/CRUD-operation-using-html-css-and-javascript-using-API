@@ -3,6 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.1/css/dataTables.bootstrap5.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/2.0.1/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/2.0.1/js/dataTables.bootstrap5.js"></script>
     <style>
       body {
         font-family: "Arial", sans-serif;
@@ -99,46 +105,11 @@
       button.cancel:hover {
         background-color: #999;
       }
-      .searchSort {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 20px; /* Adjust margin as needed */
-        gap: 50rem;
-      }
-
-      input#orderSelect {
-        margin-top: 10px;
-        padding: 8px;
-        border-radius: 4px;
-        border: 1px solid #ccc;
-        width: 100%;
-        box-sizing: border-box;
-      }
     </style>
     <title>New Admission List</title>
   </head>
   <body>
     <h2>New Admission List</h2>
-
-    <div class="searchSort">
-      <div style=" display: flex; gap: 2rem;">
-        <h3>Search:</h3>
-        <input
-          type="text"
-          id="searchInput"
-          placeholder="Search by First Name"
-          oninput="searchUsers()"
-        />
-      </div>
-
-      <div style=" display: flex; gap: 2rem;">
-        <h3>Sort:</h3>
-        <select id="orderSelect" onchange="sortUsers()">
-          <option value="asc" selected>Ascending Order</option>
-          <option value="desc">Descending Order</option>
-        </select>
-      </div>
-    </div>
 
     <button onclick="toggleAddUserForm()">Add User</button>
 
@@ -213,7 +184,7 @@
       </form>
     </div>
 
-    <table>
+    <table id="dataTable">
       <thead>
         <tr>
           <th>Registration ID</th>
@@ -231,44 +202,44 @@
     </table>
 
     <script>
-      let originalData = [];
-      let sortOrders = {};
-
-      function searchUsers() {
-        const searchInput = document
-          .getElementById("searchInput")
-          .value.toLowerCase();
-        const filteredData = originalData.filter((entry) =>
-          entry.first_name.toLowerCase().includes(searchInput)
-        );
-        populateTable(filteredData);
-      }
-
-      function sortUsers() {
-        const orderSelect = document.getElementById("orderSelect");
-        const sortOrder = orderSelect.options[orderSelect.selectedIndex].value;
-        sortUsersByColumn("first_name", sortOrder);
-      }
-
-      function sortUsersByColumn(column, order) {
-        const sortedData = originalData.slice(0);
-
-        sortedData.sort((a, b) => {
-          const compareValue = a[column]
-            .toLowerCase()
-            .localeCompare(b[column].toLowerCase());
-          return order === "asc" ? compareValue : -compareValue;
+      $(document).ready(function () {
+        var table = $("#dataTable").DataTable({
+          ajax: {
+            url: "https://glexas.com/hostel_data/API/raj/new_admission_list.php",
+            dataSrc: "response",
+          },
+          columns: [
+            { data: "registration_main_id" },
+            { data: "user_code" },
+            { data: "first_name" },
+            { data: "middle_name" },
+            { data: "last_name" },
+            { data: "phone_country_code" },
+            { data: "phone_number" },
+            { data: "email" },
+            { data: "created_time" },
+            {
+              data: null,
+              render: function (data, type, row) {
+                return (
+                  "<button onclick=\"editUser('" +
+                  row.registration_main_id +
+                  "')\">Edit</button>" +
+                  "<button onclick=\"deleteUser('" +
+                  row.registration_main_id +
+                  "')\">Delete</button>"
+                );
+              },
+            },
+          ],
+          searching: true,
+          paging: true,
         });
 
-        populateTable(sortedData);
-        sortOrders[column] = order;
-      }
+        // Additional DataTables initialization options
+        // For example, you can add pagination, search bar, etc.
+      });
 
-      function updateOrderSelect() {
-        const orderSelect = document.getElementById("orderSelect");
-        const sortOrder = sortOrders["first_name"];
-        orderSelect.value = sortOrder;
-      }
       function toggleAddUserForm() {
         const addUserForm = document.getElementById("addUserForm");
         addUserForm.style.display =
@@ -357,24 +328,11 @@
           });
       }
 
-      // function fetchDataAndPopulateTable() {
-      //     fetch('https://glexas.com/hostel_data/API/raj/new_admission_list.php')
-      //     .then(response => response.json())
-      //     .then(data => {
-      //         populateTable(data.response);
-      //     })
-      //     .catch(error => {
-      //         console.error('Error fetching data:', error);
-      //     });
-      // }
-
       function fetchDataAndPopulateTable() {
         fetch("https://glexas.com/hostel_data/API/raj/new_admission_list.php")
           .then((response) => response.json())
           .then((data) => {
-            originalData = data.response;
-            updateOrderSelect();
-            populateTable(originalData);
+            populateTable(data.response);
           })
           .catch((error) => {
             console.error("Error fetching data:", error);
